@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1F2421">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Calculadora Consórcio Valtra</title>
 <style>
   :root{
@@ -461,6 +466,8 @@ function fmtNum(n, casas){
   return n.toLocaleString('pt-BR',{minimumFractionDigits:casas||4,maximumFractionDigits:casas||4});
 }
 
+const roundCents = n => isNaN(n) ? n : Math.round(n * 100) / 100;
+
 function maskCurrency(el){
   let raw = el.value.replace(/\D/g, '');
   if(raw.length === 0){ el.value = ''; return; }
@@ -477,8 +484,9 @@ function maskCurrency(el){
 }
 function setMaskedValue(el, num){
   if(isNaN(num)) return;
-  const intPart = Math.floor(Math.abs(num)).toString();
-  const decPart = Math.round(Math.abs(num % 1) * 100).toString().padStart(2, '0');
+  const cents = Math.round(Math.abs(num) * 100);
+  const intPart = Math.floor(cents / 100).toString();
+  const decPart = (cents % 100).toString().padStart(2, '0');
   const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + decPart;
   el.value = formatted;
 }
@@ -502,11 +510,11 @@ function calcParcela(){
   const seguro = parseNum(document.getElementById('p_seguro').value);
 
   const fatorTaxas = 1 + (taxaAdm/100) + (fundoReserva/100);
-  const valorCategoria = valorBem * fatorTaxas;
+  const valorCategoria = roundCents(valorBem * fatorTaxas);
   const pctIdeal = 100/prazo;
-  const parcelaSemSeguro = (pctIdeal/100) * valorCategoria;
-  const valorSeguro = (seguro/100) * valorCategoria;
-  const parcelaComSeguro = parcelaSemSeguro + valorSeguro;
+  const parcelaSemSeguro = roundCents((pctIdeal/100) * valorCategoria);
+  const valorSeguro = roundCents((seguro/100) * valorCategoria);
+  const parcelaComSeguro = roundCents(parcelaSemSeguro + valorSeguro);
 
   document.getElementById('r_valorCategoria').textContent = fmtBRL(valorCategoria);
   document.getElementById('r_pctIdeal').textContent = fmtPct(pctIdeal,4);
@@ -548,14 +556,14 @@ function calcLance(){
   const fundoReserva = parseNum(document.getElementById('l_fundoReserva').value);
 
   const fatorTaxas = 1 + (taxaAdm/100) + (fundoReserva/100);
-  const valorCategoria = valorBem * fatorTaxas;
+  const valorCategoria = roundCents(valorBem * fatorTaxas);
 
   let valorLance, pctLance;
 
   if(lanceSource === 'pct'){
     pctLance = parseNum(document.getElementById('l_pctLance').value);
     if(!isNaN(pctLance)){
-      valorLance = (pctLance/100) * valorCategoria;
+      valorLance = roundCents((pctLance/100) * valorCategoria);
       setMaskedValue(document.getElementById('l_valorLance'), valorLance);
     } else {
       valorLance = parseNum(document.getElementById('l_valorLance').value);
@@ -626,9 +634,9 @@ function calcEmbutido(){
   const pctPerdido = (custoTotal/100) * pctEmbutido;
   const pctLiquido = 100 - pctPerdido;
   const coeficiente = 100/pctLiquido;
-  const creditoBruto = valorLiquido * coeficiente;
-  const valorEmbutido = (pctEmbutido/100) * creditoBruto;
-  const valorDinheiro = (pctCash/100) * creditoBruto;
+  const creditoBruto = roundCents(valorLiquido * coeficiente);
+  const valorEmbutido = roundCents((pctEmbutido/100) * creditoBruto);
+  const valorDinheiro = roundCents((pctCash/100) * creditoBruto);
 
   document.getElementById('r3_custoTotal').textContent = fmtPct(custoTotal,2);
   document.getElementById('r3_pctPerdido').textContent = fmtPct(pctPerdido,4);
@@ -697,6 +705,11 @@ document.querySelectorAll('.helper-btn').forEach(btn=>{
 calcParcela();
 calcLance();
 calcEmbutido();
+
+// ---- SERVICE WORKER ----
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 
 </body>

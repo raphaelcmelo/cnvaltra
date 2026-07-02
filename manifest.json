@@ -1,0 +1,24 @@
+{
+  "name": "Calculadora Cons\u00f3rcio Valtra",
+  "short_name": "Calc Valtra",
+  "description": "Ferramenta de apoio comercial \u2014 parcelas, lance e lance embutido",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#F6F4EF",
+  "theme_color": "#1F2421",
+  "orientation": "portrait",
+  "categories": ["finance", "business"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
